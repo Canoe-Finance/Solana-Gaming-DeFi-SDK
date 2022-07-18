@@ -6,6 +6,14 @@ Canoe is building a mobile-first SDK on solana hackathon, powered by Unity to bo
 
 The growth of game users has brought tremendous changes to the gaming industry, especially the mobile game market. The industry is raking in more than billions in revenue and consequently, there is a vast opportunity for operators in this space. Canoe is able to see the opportunity and is ready to take it. That is why Canoe wants to build a gaming SDK for developers of Web 2.0 game companies during solana hackathon. As mobile games have a larger user base than other types and can be played anywhere and anytime, the gaming SDK will be directly compatible with the Unity Engine.
 
+More In fo about Canoe SDK
+
+V2 Intro: https://twitter.com/canoe_finance/status/1540310855006334976
+
+Mobile Gaming-first defi sdk, https://medium.com/blog-canoe-finance/canoe-v2-redefining-web3-d3899821740f
+
+Solana mobile stack Introduction, https://github.com/solana-mobile/solana-mobile-stack-sdk
+
 ## Main Features for users and developers
 
 1. Integrate and authenticate Web 3.0 wallets with its corresponding users
@@ -21,3 +29,4 @@ With Canoe’s DeFi Toolkit and a gaming SDK, Canoe will drive a new MetaFi mark
 1. Develop a mobile SDK in Unity
 2. A showcase to use the Unity Solana SDK integrating with internal wallet and Orca or aggregator DEX.
 3. Integrate with Solana paymement within Unity SDK(Optional)
+
