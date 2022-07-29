@@ -6,7 +6,6 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Samples/Solana Wallet/1.0.0/Simple Wallet/Solana Wallet/1.0.0/Simple
-      Wallet/scenes/wallet_scene.unity
-    guid: 8b3834b526b1d9f4687af110b68aeda9
+    path: Assets/Samples/Jupiter/Scenes/Jupiter.unity
+    guid: d300cce20b547f14a8bb745ef52bb82d
   m_configObjects: {}
