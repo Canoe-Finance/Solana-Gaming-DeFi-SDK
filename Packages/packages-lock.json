@@ -1,12 +1,13 @@
 {
   "dependencies": {
-    "com.allart.solana_wallet": {
-      "version": "file:D:/Work/unity-solana-wallet",
+    "com.solana.unity_sdk": {
+      "version": "https://github.com/garbles-labs/Solana.Unity-SDK.git",
       "depth": 0,
-      "source": "local",
+      "source": "git",
       "dependencies": {
-        "com.unity.nuget.newtonsoft-json": "2.0.0"
-      }
+        "com.unity.nuget.newtonsoft-json": "3.0.2"
+      },
+      "hash": "eb217d902d0cd5c89c8652b55d042725567bd1b6"
     },
     "com.unity.collab-proxy": {
       "version": "1.15.18",
@@ -25,11 +26,11 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.ide.rider": {
-      "version": "2.0.7",
+      "version": "3.0.15",
       "depth": 0,
       "source": "registry",
       "dependencies": {
-        "com.unity.test-framework": "1.1.1"
+        "com.unity.ext.nunit": "1.0.6"
       },
       "url": "https://packages.unity.com"
     },
@@ -50,18 +51,20 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.nuget.newtonsoft-json": {
-      "version": "2.0.0",
+      "version": "3.0.2",
       "depth": 1,
       "source": "registry",
       "dependencies": {},
       "url": "https://packages.unity.com"
     },
     "com.unity.services.core": {
-      "version": "1.0.1",
+      "version": "1.4.0",
       "depth": 1,
       "source": "registry",
       "dependencies": {
-        "com.unity.modules.unitywebrequest": "1.0.0"
+        "com.unity.modules.unitywebrequest": "1.0.0",
+        "com.unity.nuget.newtonsoft-json": "3.0.2",
+        "com.unity.modules.androidjni": "1.0.0"
       },
       "url": "https://packages.unity.com"
     },
@@ -86,7 +89,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.timeline": {
-      "version": "1.4.8",
+      "version": "1.6.4",
       "depth": 0,
       "source": "registry",
       "dependencies": {

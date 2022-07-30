@@ -10,6 +10,12 @@ namespace Canon
     public class JupiterAdapter : MonoBehaviour
     {
         public static JupiterAdapter Instance;
+
+       
+        public string userPublicKey;
+        public string paymentAmount;
+        public string merchantWallet;
+        
         private void Awake()
         {
             Instance = this;
@@ -44,7 +50,9 @@ namespace Canon
             JsonData jData = JsonMapper.ToObject(data);
             //choose the first
             Debug.Log((string)jData["data"][0].ToJson());
-
         }
+
+
+        // 
     }
 }
