@@ -9,6 +9,7 @@ using Solana.Unity.SDK.Utility;
 using Solana.Unity.Wallet;
 using Solana.Unity.Wallet.Bip39;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -165,6 +166,23 @@ namespace Canoe
 
             return await ClientFactory.GetClient(Cluster.DevNet).SendTransactionAsync(Convert.ToBase64String(transaction));
 
+        }
+
+        public async Task<TokenAccount[]> GetOwnedTokenAccounts(Account account)
+        {
+            try
+            {
+                RequestResult<ResponseValue<List<TokenAccount>>> result = await ClientFactory.GetClient(Cluster.DevNet).GetTokenAccountsByOwnerAsync(account.PublicKey, null, TokenProgram.ProgramIdKey);
+                if (result.Result != null && result.Result.Value != null)
+                {
+                    return result.Result.Value.ToArray();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.Log(ex);
+            }
+            return null;
         }
     }
 }
