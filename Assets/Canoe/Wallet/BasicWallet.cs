@@ -36,23 +36,29 @@ namespace Canoe
         private void Awake()
         {
             Instance = this;
-            webSocketService = new WebSocketService();
             cypher = new Cypher();
-            //TokenAccount[] result = await SimpleWallet.instance.GetOwnedTokenAccounts(SimpleWallet.instance.wallet.GetAccount(0));
         }
         public Wallet CurrentWallet;
 
-   
+        /// <summary>
+        ///  Is there a wallet that has already been logged in
+        /// </summary>
+        /// <returns></returns>
+        public bool HasWallet()
+        {
+            return PlayerPrefs.HasKey(encryptedMnemonicsKey);
+        }
+
         /// <summary>
         /// try to login with input pwd
         /// </summary>
         /// <param name="password"></param>
         /// <returns></returns>
-        public bool LoginCheckMnemonicAndPassword(string password)
+        public bool LoginWithPwd(string password)
         {
             try
             {
-                string encryptedMnemonics = LoadPlayerPrefs(encryptedMnemonicsKey);
+                string encryptedMnemonics = PlayerPrefs.GetString(encryptedMnemonicsKey);
                 cypher.Decrypt(encryptedMnemonics, password);
                 return true;
             }
@@ -62,60 +68,31 @@ namespace Canoe
             }
         }
 
-        /// <summary>
-        ///  if there is a wallet 
-        /// </summary>
-        /// <returns></returns>
-        public bool HasWallet()
-        {
-            return PlayerPrefs.HasKey(encryptedMnemonicsKey);
-        }
 
-        ///// <summary>
-        ///// Recreates a wallet if we have already been logged in and have mnemonics saved in memory
-        ///// </summary>
-        ///// <returns></returns>
-        //public bool LoadSavedWallet()
-        //{
-        //    string mnemonicWords = string.Empty;
-        //    if (PlayerPrefs.HasKey(mnemonicsKey))
-        //    {
-        //        try
-        //        {
-        //            mnemonicWords = LoadPlayerPrefs(mnemonicsKey);
-
-        //            Wallet = new Wallet(mnemonicWords, WordList.English);
-        //            webSocketService.SubscribeToWalletAccountEvents(Wallet.Account.PublicKey);
-        //            return true;
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            return false;
-        //        }
-        //    }
-        //    return false;
-        //}
-
-        public string LoadPlayerPrefs(string key)
-        {
-            return PlayerPrefs.GetString(key);
-        }
         /// <summary>
         /// Restore the wallet using the mnemonic
         /// </summary>
-        /// <param name="mnemonics"></param>
+        /// <param name="mnemonics">mnemonics form user input</param>
+        /// <param name="password">password form user input</param>
         /// <returns></returns>
-        public Wallet RestoreWalletWithMenmonic(string mnemonics)
+        public Wallet RestoreWalletWithMenmonic(string mnemonics,string password)
         {
             try
             {
-                //string mnem = mnemonics;
+                //check if the mnemonic currect ;
                 if (!WalletKeyPair.CheckMnemonicValidity(mnemonics))
                 {
                     return null;
                     throw new Exception("Mnemonic is in incorect format");
                 }
+
                 CurrentWallet = new Wallet(mnemonics, WordList.English);
+
+                //save the encryptedMnemonics, user can login with pwd next time
+                string encryptedMnemonics = cypher.Encrypt(mnemonics, password);
+                PlayerPrefs.SetString(encryptedMnemonicsKey, encryptedMnemonics);
+
+
                 return CurrentWallet;
             }
             catch (Exception ex)
@@ -125,28 +102,40 @@ namespace Canoe
             }
         }
 
-        public void OnDestroy()
-        {
-            webSocketService.CloseConnection();
-        }
 
-        public void GenerateWallet()
+        /// <summary>
+        /// generate a new wallet
+        /// </summary>
+        /// <returns> mnemonic of new wallet, should be shown on screen</returns>
+        public Mnemonic GenerateNewWallet()
         {
             Mnemonic newMnemonic = new Mnemonic(WordList.English, WordCount.Twelve);
             CurrentWallet = new Wallet(newMnemonic);
             Debug.Log("words:" + CurrentWallet.Mnemonic);
             Debug.Log("pubkey:" + CurrentWallet.Account.PublicKey);
             Debug.Log("privatekey:" + CurrentWallet.Account.PrivateKey);
+            return newMnemonic;          
         }
 
-       //public  async Task<double> GetSolBananceAsync()
-       // {
-       //     IRpcClient rpcClient = ClientFactory.GetClient(Cluster.DevNet);
-       //     double sol = await GetSolAmmount(CurrentWallet.GetAccount(0), rpcClient);
-       //     Debug.Log("banalce:" + sol);
-       //     return sol;
-       // }
-        public async Task<double> GetSolAmmount(Account account, IRpcClient rpcClient)
+        /// <summary>
+        /// Confirm login with new wallet
+        /// </summary>
+        /// <param name="mnemonic">new generated mnemonic</param>
+        /// <param name="password">password form user input</param>
+        public void LoginWithNewGeneratedWallet(Mnemonic mnemonic, string password)
+        {
+            //save the encryptedMnemonics, user can login with pwd next time
+            string encryptedMnemonics = cypher.Encrypt(CurrentWallet.Mnemonic.ToString(), password);
+            PlayerPrefs.SetString(encryptedMnemonicsKey, encryptedMnemonics);
+        }
+
+       /// <summary>
+       /// get users sol banance
+       /// </summary>
+       /// <param name="account"></param>
+       /// <param name="rpcClient"></param>
+       /// <returns></returns>
+        public async Task<double> GetSolAmmountAsync(Account account, IRpcClient rpcClient)
         {
             AccountInfo result = await AccountUtility.GetAccountData(account, rpcClient);
             if (result != null)
@@ -154,6 +143,12 @@ namespace Canoe
             return 0;
         }
 
+        /// <summary>
+        /// transfer sol to the give address
+        /// </summary>
+        /// <param name="toPublicKey">give address</param>
+        /// <param name="ammount">ui amount</param>
+        /// <returns></returns>
         public async Task<RequestResult<string>> TransferSol(string toPublicKey, ulong ammount = 100000000)
         {
             RequestResult<ResponseValue<BlockHash>> blockHash = await ClientFactory.GetClient(Cluster.DevNet).GetRecentBlockHashAsync();
@@ -168,6 +163,11 @@ namespace Canoe
 
         }
 
+        /// <summary>
+        /// get user's token list
+        /// </summary>
+        /// <param name="account">user address</param>
+        /// <returns>list of all token infos</returns>
         public async Task<TokenAccount[]> GetOwnedTokenAccounts(Account account)
         {
             try
@@ -185,6 +185,15 @@ namespace Canoe
             return null;
         }
 
+        /// <summary>
+        /// transfer any kind of token to given address
+        /// </summary>
+        /// <param name="sourceTokenAccount">you can get the list of TokenAccount,by calling GetOwnedTokenAccounts(), get the corresponding item of TokenAccount[], pass it's PublicKey here</param>
+        /// <param name="toWalletAccount">target address</param>
+        /// <param name="sourceAccountOwner">you can call GetAccount() with user's wallet, pass it in</param>
+        /// <param name="tokenMint">mint of the token.get the list of TokenAccounts by calling GetOwnedTokenAccounts(), the it can be obtained through TokenAccount[i].Account.Data.Parsed.Info.Mint</param>
+        /// <param name="amount">ui amount</param>
+        /// <returns>transfer result</returns>
         public async Task<RequestResult<string>> TransferToken(string sourceTokenAccount, string toWalletAccount, Account sourceAccountOwner, string tokenMint, ulong amount = 1)
         {
 
@@ -248,7 +257,7 @@ namespace Canoe
             return await ClientFactory.GetClient(Cluster.DevNet).SendTransactionAsync(transaction);
         }
 
-        public async Task<TokenAccount[]> GetOwnedTokenAccounts(string walletPubKey, string tokenMintPubKey, string tokenProgramPublicKey)
+        private async Task<TokenAccount[]> GetOwnedTokenAccounts(string walletPubKey, string tokenMintPubKey, string tokenProgramPublicKey)
         {
             RequestResult<ResponseValue<List<TokenAccount>>> result = await ClientFactory.GetClient(Cluster.DevNet).GetTokenAccountsByOwnerAsync(walletPubKey, tokenMintPubKey, tokenProgramPublicKey);
             if (result.Result != null && result.Result.Value != null)
@@ -258,7 +267,7 @@ namespace Canoe
             return null;
         }
 
-        public async Task<AccountInfo> GetAccountData(PublicKey account)
+        private async Task<AccountInfo> GetAccountData(PublicKey account)
         {
             RequestResult<ResponseValue<AccountInfo>> result = await ClientFactory.GetClient(Cluster.DevNet).GetAccountInfoAsync(account);
             if (result.Result != null && result.Result.Value != null)
