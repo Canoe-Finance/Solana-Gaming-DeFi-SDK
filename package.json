@@ -1,0 +1,9 @@
+{
+	"name": "com.canoefinance.canoe_solana_untiy_sdk",
+	"displayName":"Canoe_Solana_Untiy_SDK",
+	"version": "0.1.0",
+	"unity": "2021.3",
+	"description": "Canoe is building a mobile-first SDK on solana hackathon, powered by Unity to both offer its DEX services, as well as assist developers to either create or bridge over to Web 3.0",
+	"dependencies": {
+	}
+}
