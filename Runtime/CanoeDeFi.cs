@@ -97,14 +97,14 @@ namespace Canoe
         /// <param name="mnemonics">mnemonics form user input</param>
         /// <param name="password">password form user input</param>
         /// <returns></returns>
-        public Wallet RestoreWalletWithMenmonic(string mnemonics, string password)
+        public bool RestoreWalletWithMenmonic(string mnemonics, string password)
         {
             try
             {
                 //check if the mnemonic currect ;
                 if (!WalletKeyPair.CheckMnemonicValidity(mnemonics))
                 {
-                    return null;
+                    return false;
                     throw new Exception("Mnemonic is in incorect format");
                 }
 
@@ -115,12 +115,12 @@ namespace Canoe
                 PlayerPrefs.SetString(encryptedMnemonicsKey, encryptedMnemonics);
 
 
-                return CurrentWallet;
+                return true;
             }
             catch (Exception ex)
             {
                 Debug.Log(ex);
-                return null;
+                return false;
             }
         }
 
@@ -157,8 +157,10 @@ namespace Canoe
         /// <param name="account"></param>
         /// <param name="rpcClient"></param>
         /// <returns></returns>
-        public async Task<double> GetSolAmmountAsync(Account account, IRpcClient rpcClient)
+        public async Task<double> GetSolAmmountAsync()
         {
+            Account account = CurrentWallet.Account;
+            IRpcClient rpcClient = ClientFactory.GetClient(Env);
             AccountInfo result = await AccountUtility.GetAccountData(account, rpcClient);
             if (result != null)
                 return (double)result.Lamports / 1000000000;
@@ -190,8 +192,9 @@ namespace Canoe
         /// </summary>
         /// <param name="account">user address</param>
         /// <returns>list of all token infos</returns>
-        public async Task<TokenAccount[]> GetOwnedTokenAccounts(Account account)
+        public async Task<TokenAccount[]> GetOwnedTokenAccounts()
         {
+            Account account = CurrentWallet.Account;
             try
             {
                 RequestResult<ResponseValue<List<TokenAccount>>> result = await ClientFactory.GetClient(Env).GetTokenAccountsByOwnerAsync(account.PublicKey, null, TokenProgram.ProgramIdKey);
@@ -287,12 +290,12 @@ namespace Canoe
         /// <param name="amout"></param>
         /// <param name="shippage"></param>
         /// <param name="Callback"></param>
-        public void  JupyterSwapRequest(string inputMint, string outputMint, ulong amout, float shippage = 0.5f,Action<string> Callback=null)
+        public void JupyterSwapRequest(string inputMint, string outputMint, ulong amout, float shippage = 0.5f, Action<string> Callback = null)
         {
             string routUrlWithPams = string.Format(routeUrl, inputMint, outputMint, amout, shippage);
-           StartCoroutine(GetJupyterTx(routUrlWithPams));
+            StartCoroutine(GetJupyterTx(routUrlWithPams));
         }
-        
+
         #region Private functions
 
         private async Task<TokenAccount[]> GetOwnedTokenAccounts(string walletPubKey, string tokenMintPubKey, string tokenProgramPublicKey)
