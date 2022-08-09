@@ -25,6 +25,6 @@ With Canoe’s DeFi Toolkit and a gaming SDK, Canoe will drive a new MetaFi mark
 ## Delivery on Solana Hackathon
 
 1. Develop a mobile SDK in Unity
-2. A showcase to use the Unity Solana SDK integrating with internal wallet and Orca or aggregator DEX.
+2. A showcase to use the Unity Solana SDK integrating with internal wallet and Jupiter with revenue sharing features.
 3. Integrate with Solana paymement within Unity SDK(Optional)
 
