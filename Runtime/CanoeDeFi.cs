@@ -1,3 +1,4 @@
+using LitJson;
 using Solana.Unity.Programs;
 using Solana.Unity.Rpc;
 using Solana.Unity.Rpc.Builders;
@@ -9,36 +10,57 @@ using Solana.Unity.SDK.Utility;
 using Solana.Unity.Wallet;
 using Solana.Unity.Wallet.Bip39;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace Canoe
 {
-    public class CanoeWallet : MonoBehaviour
+    public class CanoeDeFi : MonoBehaviour
     {
-        public static CanoeWallet Instance;
-
+        public static CanoeDeFi Instance;
 
         public Wallet Wallet { get; set; }
         public string Mnemonics { get; private set; }
         public string Password { get; private set; }
         public string PrivateKey { get; private set; }
 
-        [HideInInspector]
-        public WebSocketService webSocketService;
+        [SerializeField]
+        [Header("which sol net you prefer")]
+        public Cluster Env = Cluster.DevNet;
+
         private Cypher cypher;
 
-        private string mnemonicsKey = "Mnemonics";
+        #region Public members
+
+        public Wallet CurrentWallet;
+        public TokenAccount[] TokenAccounts;
+
+        #endregion
+
+        #region Private members
+
+        private JsonData jupyteRoute;
+        //private string routeUrl = "https://quote-api.jup.ag/v1/quote?inputMint=So11111111111111111111111111111111111111112&outputMint=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&amount=10000000&slippage=0.5";
+        private string routeUrl = $"https://quote-api.jup.ag/v1/quote?inputMint={0}&outputMint={1}&amount={2}&slippage={3}";
+        private string jupyterPostUrl = "https://quote-api.jup.ag/v1/swap";
+        private string jupyterMsgBase64;
+        private RequestResult<string> jupyterSwapResult;
+        private Action<RequestResult<string>> jupyterSwapCallback;
         private string passwordKey = "Password";
         private string encryptedMnemonicsKey = "EncryptedMnemonics";
         private string privateKeyKey = "PrivateKey";
+
+        #endregion
         private void Awake()
         {
             Instance = this;
             cypher = new Cypher();
+            jupyteRoute = new JsonData();
         }
-        public Wallet CurrentWallet;
+
 
         /// <summary>
         ///  Is there a wallet that has already been logged in
@@ -75,7 +97,7 @@ namespace Canoe
         /// <param name="mnemonics">mnemonics form user input</param>
         /// <param name="password">password form user input</param>
         /// <returns></returns>
-        public Wallet RestoreWalletWithMenmonic(string mnemonics,string password)
+        public Wallet RestoreWalletWithMenmonic(string mnemonics, string password)
         {
             try
             {
@@ -111,10 +133,10 @@ namespace Canoe
         {
             Mnemonic newMnemonic = new Mnemonic(WordList.English, WordCount.Twelve);
             CurrentWallet = new Wallet(newMnemonic);
-            Debug.Log("words:" + CurrentWallet.Mnemonic);
-            Debug.Log("pubkey:" + CurrentWallet.Account.PublicKey);
-            Debug.Log("privatekey:" + CurrentWallet.Account.PrivateKey);
-            return newMnemonic;          
+            Debug.Log($"words:{CurrentWallet.Mnemonic}");
+            Debug.Log($"pubkey:{CurrentWallet.Account.PublicKey}");
+            Debug.Log($"privatekey:{CurrentWallet.Account.PrivateKey}");
+            return newMnemonic;
         }
 
         /// <summary>
@@ -129,12 +151,12 @@ namespace Canoe
             PlayerPrefs.SetString(encryptedMnemonicsKey, encryptedMnemonics);
         }
 
-       /// <summary>
-       /// get users sol banance
-       /// </summary>
-       /// <param name="account"></param>
-       /// <param name="rpcClient"></param>
-       /// <returns></returns>
+        /// <summary>
+        /// get users sol banance
+        /// </summary>
+        /// <param name="account"></param>
+        /// <param name="rpcClient"></param>
+        /// <returns></returns>
         public async Task<double> GetSolAmmountAsync(Account account, IRpcClient rpcClient)
         {
             AccountInfo result = await AccountUtility.GetAccountData(account, rpcClient);
@@ -151,7 +173,7 @@ namespace Canoe
         /// <returns></returns>
         public async Task<RequestResult<string>> TransferSol(string toPublicKey, ulong ammount = 100000000)
         {
-            RequestResult<ResponseValue<BlockHash>> blockHash = await ClientFactory.GetClient(Cluster.DevNet).GetRecentBlockHashAsync();
+            RequestResult<ResponseValue<BlockHash>> blockHash = await ClientFactory.GetClient(Env).GetRecentBlockHashAsync();
             Account fromAccount = CurrentWallet.GetAccount(0);
 
             var transaction = new TransactionBuilder().SetRecentBlockHash(blockHash.Result.Value.Blockhash).
@@ -159,7 +181,7 @@ namespace Canoe
                 SetFeePayer(fromAccount).
                 Build(fromAccount);
 
-            return await ClientFactory.GetClient(Cluster.DevNet).SendTransactionAsync(Convert.ToBase64String(transaction));
+            return await ClientFactory.GetClient(Env).SendTransactionAsync(Convert.ToBase64String(transaction));
 
         }
 
@@ -172,7 +194,7 @@ namespace Canoe
         {
             try
             {
-                RequestResult<ResponseValue<List<TokenAccount>>> result = await ClientFactory.GetClient(Cluster.DevNet).GetTokenAccountsByOwnerAsync(account.PublicKey, null, TokenProgram.ProgramIdKey);
+                RequestResult<ResponseValue<List<TokenAccount>>> result = await ClientFactory.GetClient(Env).GetTokenAccountsByOwnerAsync(account.PublicKey, null, TokenProgram.ProgramIdKey);
                 if (result.Result != null && result.Result.Value != null)
                 {
                     return result.Result.Value.ToArray();
@@ -202,8 +224,8 @@ namespace Canoe
             Account ownerAccount = CurrentWallet.GetAccount(0);
             PublicKey associatedTokenAccount = AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(associatedTokenAccountOwner, new PublicKey(tokenMint));
 
-            RequestResult<ResponseValue<BlockHash>> blockHash = await ClientFactory.GetClient(Cluster.DevNet).GetRecentBlockHashAsync();
-            RequestResult<ulong> rentExemptionAmmount = await ClientFactory.GetClient(Cluster.DevNet).GetMinimumBalanceForRentExemptionAsync(TokenProgram.TokenAccountDataSize);
+            RequestResult<ResponseValue<BlockHash>> blockHash = await ClientFactory.GetClient(Env).GetRecentBlockHashAsync();
+            RequestResult<ulong> rentExemptionAmmount = await ClientFactory.GetClient(Env).GetMinimumBalanceForRentExemptionAsync(TokenProgram.TokenAccountDataSize);
 
             TokenAccount[] lortAccounts = await GetOwnedTokenAccounts(toWalletAccount, tokenMint, TokenProgram.ProgramIdKey);
             byte[] transaction;
@@ -254,12 +276,28 @@ namespace Canoe
                     Build(new List<Account> { ownerAccount });
             }
 
-            return await ClientFactory.GetClient(Cluster.DevNet).SendTransactionAsync(transaction);
+            return await ClientFactory.GetClient(Env).SendTransactionAsync(transaction);
         }
+
+        /// <summary>
+        /// make a jupyter swap
+        /// </summary>
+        /// <param name="inputMint"></param>
+        /// <param name="outputMint"></param>
+        /// <param name="amout"></param>
+        /// <param name="shippage"></param>
+        /// <param name="Callback"></param>
+        public void  JupyterSwapRequest(string inputMint, string outputMint, ulong amout, float shippage = 0.5f,Action<string> Callback=null)
+        {
+            string routUrlWithPams = string.Format(routeUrl, inputMint, outputMint, amout, shippage);
+           StartCoroutine(GetJupyterTx(routUrlWithPams));
+        }
+        
+        #region Private functions
 
         private async Task<TokenAccount[]> GetOwnedTokenAccounts(string walletPubKey, string tokenMintPubKey, string tokenProgramPublicKey)
         {
-            RequestResult<ResponseValue<List<TokenAccount>>> result = await ClientFactory.GetClient(Cluster.DevNet).GetTokenAccountsByOwnerAsync(walletPubKey, tokenMintPubKey, tokenProgramPublicKey);
+            RequestResult<ResponseValue<List<TokenAccount>>> result = await ClientFactory.GetClient(Env).GetTokenAccountsByOwnerAsync(walletPubKey, tokenMintPubKey, tokenProgramPublicKey);
             if (result.Result != null && result.Result.Value != null)
             {
                 return result.Result.Value.ToArray();
@@ -269,13 +307,97 @@ namespace Canoe
 
         private async Task<AccountInfo> GetAccountData(PublicKey account)
         {
-            RequestResult<ResponseValue<AccountInfo>> result = await ClientFactory.GetClient(Cluster.DevNet).GetAccountInfoAsync(account);
+            RequestResult<ResponseValue<AccountInfo>> result = await ClientFactory.GetClient(Env).GetAccountInfoAsync(account);
             if (result.Result != null && result.Result.Value != null)
             {
                 return result.Result.Value;
             }
             return null;
         }
+
+
+        private IEnumerator GetJupyterTx(string routeUrlWithPams)
+        {
+            //get jupyter route
+            UnityWebRequest getRequest = UnityWebRequest.Get(routeUrlWithPams);
+            yield return getRequest.SendWebRequest();
+            if (getRequest.result == UnityWebRequest.Result.ConnectionError)
+            {
+                Debug.Log(" Failed to communicate with the server");
+                yield return null;
+            }
+            string data = getRequest.downloadHandler.text;
+            Debug.Log(data);
+            JsonData jData = JsonMapper.ToObject(data);
+            //choose the first
+            jupyteRoute["route"] = jData["data"][0];
+
+            //get jupyter transaction
+
+            jupyteRoute["userPublicKey"] = CurrentWallet.Account.PublicKey.ToString();
+            Debug.Log($"data:{(string)jupyteRoute.ToJson()}");
+            byte[] postBytes = System.Text.Encoding.Default.GetBytes((string)jupyteRoute.ToJson());
+
+            Debug.Log($"route: {(string)jupyteRoute.ToJson()}");
+            Debug.Log($"userPublicKey:{CurrentWallet.Account.PublicKey}");
+            UnityWebRequest postRequest = new UnityWebRequest(jupyterPostUrl, "POST");
+            postRequest.SetRequestHeader("Content-Type", "application/json");
+            postRequest.uploadHandler = (UploadHandler)new UploadHandlerRaw(postBytes);
+            postRequest.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
+
+            yield return postRequest.SendWebRequest();
+
+            if (postRequest.result == UnityWebRequest.Result.ProtocolError)
+            {
+                Debug.Log($"UnityWebRequest.Result.ProtocolError:{postRequest.result}");
+            }
+            else if (postRequest.result == UnityWebRequest.Result.ConnectionError)
+            {
+                Debug.Log($"UnityWebRequest.Result.ConnectionError:{postRequest.result}");
+            }
+            else
+            {
+                string receiveContent = postRequest.downloadHandler.text;
+                Debug.Log(receiveContent);
+            }
+
+            Debug.Log($"Status Code: {postRequest.responseCode}");
+            if (postRequest.responseCode == 200)
+            {
+                string text = postRequest.downloadHandler.text;
+            }
+            JsonData resJdata = JsonMapper.ToObject(postRequest.downloadHandler.text);
+            Debug.Log($"base64Data:{resJdata["swapTransaction"]}");
+
+            jupyterMsgBase64 = resJdata["swapTransaction"].ToJson().Replace("\n", "").Replace(" ", "").Replace("\t", "").Replace("\r", "").Replace("\"", "");
+
+            var task = Task.Run(SendJupyterTransaction);
+            yield return new WaitUntil(() => task.IsCompleted);
+
+        }
+
+        private async Task SendJupyterTransaction()
+        {
+            Transaction decodedInstructions = Transaction.Deserialize(jupyterMsgBase64);
+
+            RequestResult<ResponseValue<BlockHash>> blockHash = await ClientFactory.GetClient(Cluster.MainNet).GetRecentBlockHashAsync();
+
+            var tb = new TransactionBuilder().SetRecentBlockHash(blockHash.Result.Value.Blockhash).
+           SetFeePayer(CurrentWallet.Account);
+            for (int i = 0; i < decodedInstructions.Instructions.Count; i++)
+            {
+                tb.AddInstruction(decodedInstructions.Instructions[i]);
+            }
+            byte[] txBytes = tb.
+           Build(new List<Account> { CurrentWallet.Account });
+
+
+            var result = await ClientFactory.GetClient(Cluster.MainNet).SendTransactionAsync(txBytes);
+            jupyterSwapResult = result;
+            jupyterSwapCallback?.Invoke(result);
+            Debug.Log($"done: {result.Reason}");
+        }
+        #endregion
     }
 
 }
