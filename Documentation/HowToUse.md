@@ -99,14 +99,18 @@ TokenAccount[] tokenAccounts = await CanoeDeFi.Instance.GetOwnedTokenAccounts();
 ### Transfer Token
 It will be used for users' transfer and consumption in game, this is the most complex function so far, but it's not hard to understand. Overall this function transfer any kind of token to the given address.
 
-We have a very detailed description of each parameter in the code comments.
+We have a very detailed description for each parameter in the code comments.
 
 ```C#
 RequestResult<string> requestResult = await 
 CanoeDeFi.Instance.TransferToken(sourceTokenAccount, toWalletAccount, sourceAccountOwner, 
 tokenMint, amount);
 ```
-
+### Jupyter Swap Request
+Swap between SOL and token, or diffent kinds of token is very useful. We implemented an aggregated dex Jupyter, it can be used by calling the method[JupyterSwapRequest()], passing parameters of inputMint, outputMint, amout, shippage, and the callback action. while jupyter's swap is done, the callback function will be called. Result should be handled in your callback function.
+```C#
+CanoeDeFi.Instance.JupyterSwapRequest(inputMint, outputMint, amout, shippage, callbackAction<string>);
+```
 ## License
    
     This project is licensed under the MIT License - see the [LICENSE](https://github.com/bmresearch/Solnet/blob/master/LICENSE) file for details
