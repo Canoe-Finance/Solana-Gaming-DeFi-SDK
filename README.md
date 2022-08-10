@@ -24,16 +24,16 @@ With Canoe’s DeFi Toolkit and a gaming SDK, Canoe will drive a new MetaFi mark
 
 ## Features
 
-- Gernerate wallet with mnemonic
+- Generate wallet with the mnemonic
 - Encrypt/ decrypt  account, local handled wallet(non-custodial)
-- SOL banlace/ transfer
+- SOL balance/ transfer
 - Transaction handling
 - SPL balance/ transfer, , base64 data decoding
 - Instruction decompilation
 - Full Jupyter support
-- Gernerate wallet with mnemonic
+- Generate wallet with the mnemonic
 - Encrypt/ decrypt  account, local handled wallet(non-custodial)
-- SOL banlace/ transfer
+- SOL balance/ transfer
 - Transaction handling
 - SPL balance/ transfer, , base64 data decoding
 - Instruction decompilation
@@ -42,9 +42,9 @@ With Canoe’s DeFi Toolkit and a gaming SDK, Canoe will drive a new MetaFi mark
  ## Dependencies
 
 - Solana.Unity.Wallet
-- Solana.Unity.Rpc
-- Soalana.Unity.KeyStore
-- Soalana.Unity.Programs
+- Solana.Unity.RPC
+- Solana.Unity.KeyStore
+- Solana.Unity.Programs
 - Newtonsoft.Json
 - Chaos.NaCl.Standard
 - Portable.BouncyCastle
@@ -65,11 +65,11 @@ This SDK is compatible with the following versions of the Unity Editor:
 
 ## How To Use
 
-Complete usage instructions and code samples can be found [HERE](https://github.com/Canoe-Finance/Solana-Gaming-DeFi-SDK/blob/main/Documentation/HowToUse.md).
+Usage instructions and code samples can be found [HERE](https://github.com/Canoe-Finance/Solana-Gaming-DeFi-SDK/blob/main/Documentation/HowToUse.md).
 
 ## Delivery on Solana Hackathon
 
 1. Develop a mobile SDK in Unity
 2. A showcase to use the Unity Solana SDK integrating with internal wallet and Jupiter with revenue sharing features.
-3. Integrate with Solana paymement within Unity SDK(Optional)
+3. Integrate with Solana payment within Unity SDK(Optional)
 
