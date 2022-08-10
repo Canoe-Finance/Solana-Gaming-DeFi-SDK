@@ -1,50 +1,15 @@
-
-## Requirements
-This SDK is compatible with the following versions of the Unity Editor:
-* 2018.1 and later (2020 and later are recommended)
 ## Installing
  You can add package to your unity project via Window--Package Manager--Add package from git url, paste the address https://github.com/Canoe-Finance/Solana-Gaming-DeFi-SDK.git and click add .
 If your are using an older version of unity, you can download our responsity, then select the package.json file through Window--Package Manager--Add package from disk to import.
-## Features
-- Gernerate wallet with mnemonic
-- Encrypt/ decrypt  account, local handled wallet(non-custodial)
-- SOL banlace/ transfer
-- Transaction handling
-- SPL balance/ transfer, , base64 data decoding
-- Instruction decompilation
-- Full Jupyter support
-- Gernerate wallet with mnemonic
-- Encrypt/ decrypt  account, local handled wallet(non-custodial)
-- SOL banlace/ transfer
-- Transaction handling
-- SPL balance/ transfer, , base64 data decoding
-- Instruction decompilation
-- Full Jupyter support
-- ## Dependencies
-- Solana.Unity.Wallet
-- Solana.Unity.Rpc
-- Soalana.Unity.KeyStore
-- Soalana.Unity.Programs
-- Newtonsoft.Json
-- Chaos.NaCl.Standard
-- Portable.BouncyCastle
-- Zxing
-- LitJson
- 
- 
- 
-  ## External packages
-- Native File Picker
-- Standalone File Browser
- 
-   
-   ## Step-by-step instructions
+
+
+## Step-by-step instructions
 1. If you have an older version of Unity that doesn't have imported Newtonsoft.Json just import it.
 2. After importing the wallet Unity will throw unity-plastic error. Just restart Unity.
 3. Create new or use an existing Gameobject in you scene, selet it, click Add Component in inspector, input CanoeDeFi to serch, add it to the Gameobject. Make sure this GameObject won't be destoryed.
 4. Set the envirment of solnet you prefer(MainNet/TestNet/DevNet) on CanoeDeFi script in your gameobject.
-   
- ## Step-by-step functionalities description
+
+## Step-by-step functionalities description
  The CanoeDeFi script is a singleton, you can use it anywhere by calling [CanoeDeFi.Instance] easily.
 
 ###  HasWallet
@@ -52,27 +17,26 @@ If your are using an older version of unity, you can download our responsity, th
 ```C#
   bool tf = CanoeDeFi.Instance.HasWallet();
 ```
-  ### Generate New Wallet
+### Generate New Wallet
 - Creating a new wallet is divided into two steps: generating a mnemonic, and logging in using the password and the mnemonic just generated.
-- 
-* 1. Generate and return the mnemonic. You should display these mnemonics on the UI. And make sure the user has written it down.
+* Generate and return the mnemonic. You should display these mnemonics on the UI. And make sure the user has written it down.
 ```C#
   Mnemonic mnemonic = CanoeDeFi.Instance.GenerateNewWallet();
 ```
-* 2. After confirming that the user has written it down, use the mnemonic phrase just generated and the password entered by the user to log in.
+* After confirming that the user has written it down, use the mnemonic phrase just generated and the password entered by the user to log in.
 ```C#
   CanoeDeFi.Instance.LoginWithNewGeneratedWallet(mnemonic, password);
 ```
-  ### Restore Wallet With Menmonic
+### Restore Wallet With Menmonic
   If the user already has an account, this method can be called with the mnemonic entered by the user. Mnemonics are 12 or 24 words separated by spaces.
-  
+
   If the wallet is restored successfully, it will return true, and the user's wallet will be saved, otherwise it will return false.
 ```C#
 bool tf = CanoeDeFi.Instance.RestoreWalletWithMenmonic(mnemonic, password);
 ```
 ###  Login With Passwprd
  If you know that the user has logged in before through the previous method, you can let the user enter the password to log in.
- 
+
  If the password is correct, it will return true, otherwise it will return false.
 ```C#
  bool tf = CanoeDeFi.Instance.LoginWithPwd(password);
@@ -112,6 +76,6 @@ Swap between SOL and token, or diffent kinds of token is very useful. We impleme
 CanoeDeFi.Instance.JupyterSwapRequest(inputMint, outputMint, amout, shippage, callbackAction<string>);
 ```
 ## License
-   
+
     This project is licensed under the MIT License - see the [LICENSE](https://github.com/bmresearch/Solnet/blob/master/LICENSE) file for details
-    ![Twitter Follow](https://img.shields.io/twitter/follow/)
+<!--     ![Twitter Follow](https://img.shields.io/twitter/follow/) -->

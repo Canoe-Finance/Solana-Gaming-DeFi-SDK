@@ -22,6 +22,53 @@ Solana mobile stack Introduction, https://github.com/solana-mobile/solana-mobile
 
 With Canoe’s DeFi Toolkit and a gaming SDK, Canoe will drive a new MetaFi market, which promises Web 3.0 integration from Web 2.0 games as well as inviting emerging games wanting to create a tokenized platform to begin its development.
 
+## Features
+
+- Gernerate wallet with mnemonic
+- Encrypt/ decrypt  account, local handled wallet(non-custodial)
+- SOL banlace/ transfer
+- Transaction handling
+- SPL balance/ transfer, , base64 data decoding
+- Instruction decompilation
+- Full Jupyter support
+- Gernerate wallet with mnemonic
+- Encrypt/ decrypt  account, local handled wallet(non-custodial)
+- SOL banlace/ transfer
+- Transaction handling
+- SPL balance/ transfer, , base64 data decoding
+- Instruction decompilation
+- Full Jupyter support
+
+ ## Dependencies
+
+- Solana.Unity.Wallet
+- Solana.Unity.Rpc
+- Soalana.Unity.KeyStore
+- Soalana.Unity.Programs
+- Newtonsoft.Json
+- Chaos.NaCl.Standard
+- Portable.BouncyCastle
+- Zxing
+- LitJson
+
+## External packages
+
+Native File Picker
+
+Standalone File Brows
+
+## Requirements
+
+This SDK is compatible with the following versions of the Unity Editor:
+
+2018.1 and later (2020 and later are recommended)
+
+## How To Use
+
+[How to Use]: https://github.com/Canoe-Finance/Solana-Gaming-DeFi-SDK/blob/main/Documentation/HowToUse.md	"documentation"
+
+Complete usage instructions and code samples can be found there.
+
 ## Delivery on Solana Hackathon
 
 1. Develop a mobile SDK in Unity
