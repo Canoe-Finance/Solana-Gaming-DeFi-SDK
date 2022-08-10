@@ -65,9 +65,7 @@ This SDK is compatible with the following versions of the Unity Editor:
 
 ## How To Use
 
-[How to Use]: https://github.com/Canoe-Finance/Solana-Gaming-DeFi-SDK/blob/main/Documentation/HowToUse.md	"documentation"
-
-Complete usage instructions and code samples can be found there.
+Complete usage instructions and code samples can be found [HERE](https://github.com/Canoe-Finance/Solana-Gaming-DeFi-SDK/blob/main/Documentation/HowToUse.md).
 
 ## Delivery on Solana Hackathon
 
