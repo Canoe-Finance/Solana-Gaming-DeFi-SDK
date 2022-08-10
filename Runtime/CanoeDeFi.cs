@@ -290,9 +290,10 @@ namespace Canoe
         /// <param name="amout"></param>
         /// <param name="shippage"></param>
         /// <param name="Callback"></param>
-        public void JupyterSwapRequest(string inputMint, string outputMint, ulong amout, float shippage = 0.5f, Action<string> Callback = null)
+        public void JupyterSwapRequest(string inputMint, string outputMint, ulong amout, float shippage = 0.5f, Action<string> callback = null)
         {
             string routUrlWithPams = string.Format(routeUrl, inputMint, outputMint, amout, shippage);
+            jupyterSwapCallback=callback;
             StartCoroutine(GetJupyterTx(routUrlWithPams));
         }
 
