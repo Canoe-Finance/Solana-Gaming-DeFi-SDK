@@ -45,10 +45,10 @@ namespace Canoe
         private JsonData jupyteRoute;
         //private string routeUrl = "https://quote-api.jup.ag/v1/quote?inputMint=So11111111111111111111111111111111111111112&outputMint=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&amount=10000000&slippage=0.5";
         private string routeUrl = $"https://quote-api.jup.ag/v1/quote?inputMint={0}&outputMint={1}&amount={2}&slippage={3}";
-        private string jupyterPostUrl = "https://quote-api.jup.ag/v1/swap";
-        private string jupyterMsgBase64;
-        private RequestResult<string> jupyterSwapResult;
-        private Action<RequestResult<string>> jupyterSwapCallback;
+        private string jupiterPostUrl = "https://quote-api.jup.ag/v1/swap";
+        private string jupiterMsgBase64;
+        private RequestResult<string> jupiterSwapResult;
+        private Action<RequestResult<string>> jupiterSwapCallback;
         private string passwordKey = "Password";
         private string encryptedMnemonicsKey = "EncryptedMnemonics";
         private string privateKeyKey = "PrivateKey";
@@ -283,18 +283,18 @@ namespace Canoe
         }
 
         /// <summary>
-        /// make a jupyter swap
+        /// make a jupiter swap
         /// </summary>
         /// <param name="inputMint"></param>
         /// <param name="outputMint"></param>
         /// <param name="amout"></param>
         /// <param name="shippage"></param>
         /// <param name="Callback"></param>
-        public void JupyterSwapRequest(string inputMint, string outputMint, ulong amout, float shippage = 0.5f, Action<string> callback = null)
+        public void JupiterSwapRequest(string inputMint, string outputMint, ulong amout, float shippage = 0.5f, Action<string> callback = null)
         {
             string routUrlWithPams = string.Format(routeUrl, inputMint, outputMint, amout, shippage);
-            jupyterSwapCallback=callback;
-            StartCoroutine(GetJupyterTx(routUrlWithPams));
+            jupiterSwapCallback=callback;
+            StartCoroutine(GetJupiterTx(routUrlWithPams));
         }
 
         #region Private functions
@@ -320,9 +320,9 @@ namespace Canoe
         }
 
 
-        private IEnumerator GetJupyterTx(string routeUrlWithPams)
+        private IEnumerator GetJupiterTx(string routeUrlWithPams)
         {
-            //get jupyter route
+            //get jupiter route
             UnityWebRequest getRequest = UnityWebRequest.Get(routeUrlWithPams);
             yield return getRequest.SendWebRequest();
             if (getRequest.result == UnityWebRequest.Result.ConnectionError)
@@ -336,7 +336,7 @@ namespace Canoe
             //choose the first
             jupyteRoute["route"] = jData["data"][0];
 
-            //get jupyter transaction
+            //get jupiter transaction
 
             jupyteRoute["userPublicKey"] = CurrentWallet.Account.PublicKey.ToString();
             Debug.Log($"data:{(string)jupyteRoute.ToJson()}");
@@ -344,7 +344,7 @@ namespace Canoe
 
             Debug.Log($"route: {(string)jupyteRoute.ToJson()}");
             Debug.Log($"userPublicKey:{CurrentWallet.Account.PublicKey}");
-            UnityWebRequest postRequest = new UnityWebRequest(jupyterPostUrl, "POST");
+            UnityWebRequest postRequest = new UnityWebRequest(jupiterPostUrl, "POST");
             postRequest.SetRequestHeader("Content-Type", "application/json");
             postRequest.uploadHandler = (UploadHandler)new UploadHandlerRaw(postBytes);
             postRequest.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
@@ -373,16 +373,16 @@ namespace Canoe
             JsonData resJdata = JsonMapper.ToObject(postRequest.downloadHandler.text);
             Debug.Log($"base64Data:{resJdata["swapTransaction"]}");
 
-            jupyterMsgBase64 = resJdata["swapTransaction"].ToJson().Replace("\n", "").Replace(" ", "").Replace("\t", "").Replace("\r", "").Replace("\"", "");
+            jupiterMsgBase64 = resJdata["swapTransaction"].ToJson().Replace("\n", "").Replace(" ", "").Replace("\t", "").Replace("\r", "").Replace("\"", "");
 
-            var task = Task.Run(SendJupyterTransaction);
+            var task = Task.Run(SendJupiterTransaction);
             yield return new WaitUntil(() => task.IsCompleted);
 
         }
 
-        private async Task SendJupyterTransaction()
+        private async Task SendJupiterTransaction()
         {
-            Transaction decodedInstructions = Transaction.Deserialize(jupyterMsgBase64);
+            Transaction decodedInstructions = Transaction.Deserialize(jupiterMsgBase64);
 
             RequestResult<ResponseValue<BlockHash>> blockHash = await ClientFactory.GetClient(Cluster.MainNet).GetRecentBlockHashAsync();
 
@@ -397,8 +397,8 @@ namespace Canoe
 
 
             var result = await ClientFactory.GetClient(Cluster.MainNet).SendTransactionAsync(txBytes);
-            jupyterSwapResult = result;
-            jupyterSwapCallback?.Invoke(result);
+            jupiterSwapResult = result;
+            jupiterSwapCallback?.Invoke(result);
             Debug.Log($"done: {result.Reason}");
         }
         #endregion
