@@ -290,7 +290,7 @@ namespace Canoe
         /// <param name="amout"></param>
         /// <param name="shippage"></param>
         /// <param name="Callback"></param>
-        public void JupiterSwapRequest(string inputMint, string outputMint, ulong amout, float shippage = 0.5f, Action<string> callback = null)
+        public void JupiterSwapRequest(string inputMint, string outputMint, ulong amout, float shippage = 0.5f, Action<RequestResult<string>> callback = null)
         {
             string routUrlWithPams = string.Format(routeUrl, inputMint, outputMint, amout, shippage);
             jupiterSwapCallback=callback;

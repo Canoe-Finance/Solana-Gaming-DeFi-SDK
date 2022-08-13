@@ -73,7 +73,7 @@ tokenMint, amount);
 ### Jupiter Swap Request
 Swap between SOL and token, or different kinds of the token is very useful. We implemented an aggregated dex Jupiter, which can be used by calling the method[JupiterSwapRequest()], passing parameters of inputMint, outputMint, amount, shippage, and the callback action. while jupiter's swap is done, the callback function will be called. The result should be handled in your callback function.
 ```C#
-CanoeDeFi.Instance.JupiterSwapRequest(inputMint, outputMint, amout, shippage, callbackAction<string>);
+CanoeDeFi.Instance.JupiterSwapRequest(inputMint, outputMint, amout, shippage, callbackAction<RequestResult<string>>);
 ```
 ## License
 
