@@ -81,7 +81,8 @@ namespace Canoe
             try
             {
                 string encryptedMnemonics = PlayerPrefs.GetString(encryptedMnemonicsKey);
-                cypher.Decrypt(encryptedMnemonics, password);
+                var mnemonic = cypher.Decrypt(encryptedMnemonics, password);
+                CurrentWallet = new Wallet(mnemonic);
                 return true;
             }
             catch (Exception ex)
@@ -293,7 +294,7 @@ namespace Canoe
         public void JupiterSwapRequest(string inputMint, string outputMint, ulong amout, float shippage = 0.5f, Action<RequestResult<string>> callback = null)
         {
             string routUrlWithPams = string.Format(routeUrl, inputMint, outputMint, amout, shippage);
-            jupiterSwapCallback=callback;
+            jupiterSwapCallback = callback;
             StartCoroutine(GetJupiterTx(routUrlWithPams));
         }
 
