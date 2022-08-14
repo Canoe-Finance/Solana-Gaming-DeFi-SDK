@@ -218,9 +218,10 @@ namespace Canoe
         /// <param name="toWalletAccount">target address</param>
         /// <param name="sourceAccountOwner">you can call GetAccount() with user's wallet, pass it in</param>
         /// <param name="tokenMint">mint of the token.get the list of TokenAccounts by calling GetOwnedTokenAccounts(), the it can be obtained through TokenAccount[i].Account.Data.Parsed.Info.Mint</param>
+        ///  /// <param name="tokenDecimals">token decimals</param>
         /// <param name="amount">ui amount</param>
         /// <returns>transfer result</returns>
-        public async Task<RequestResult<string>> TransferToken(string sourceTokenAccount, string toWalletAccount, Account sourceAccountOwner, string tokenMint, ulong amount = 1)
+        public async Task<RequestResult<string>> TransferToken(string sourceTokenAccount, string toWalletAccount, Account sourceAccountOwner, string tokenMint,int tokenDecimals=9, ulong amount = 1)
         {
 
             PublicKey associatedTokenAccountOwner = new PublicKey(toWalletAccount);

@@ -68,7 +68,7 @@ We have a very detailed description for each parameter in the code comments.
 ```C#
 RequestResult<string> requestResult = await 
 CanoeDeFi.Instance.TransferToken(sourceTokenAccount, toWalletAccount, sourceAccountOwner, 
-tokenMint, amount);
+tokenMint, tokenDecimals, amount);
 ```
 ### Jupiter Swap Request
 Swap between SOL and token, or different kinds of the token is very useful. We implemented an aggregated dex Jupiter, which can be used by calling the method[JupiterSwapRequest()], passing parameters of inputMint, outputMint, amount, shippage, and the callback action. while jupiter's swap is done, the callback function will be called. The result should be handled in your callback function.
