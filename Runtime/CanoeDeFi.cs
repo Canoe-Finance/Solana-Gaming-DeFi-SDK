@@ -42,7 +42,7 @@ namespace Canoe
 
         #region Private members
 
-        private JsonData jupyteRoute;
+        private JsonData jupiterRoute;
         //private string routeUrl = "https://quote-api.jup.ag/v1/quote?inputMint=So11111111111111111111111111111111111111112&outputMint=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&amount=10000000&slippage=0.5";
         private string routeUrl = $"https://quote-api.jup.ag/v1/quote?inputMint={0}&outputMint={1}&amount={2}&slippage={3}&feeBps={4}";
         private string jupiterPostUrl = "https://quote-api.jup.ag/v1/swap";
@@ -58,7 +58,7 @@ namespace Canoe
         {
             Instance = this;
             cypher = new Cypher();
-            jupyteRoute = new JsonData();
+            jupiterRoute = new JsonData();
         }
 
 
@@ -221,7 +221,7 @@ namespace Canoe
         ///  /// <param name="tokenDecimals">token decimals</param>
         /// <param name="amount">ui amount</param>
         /// <returns>transfer result</returns>
-        public async Task<RequestResult<string>> TransferToken(string sourceTokenAccount, string toWalletAccount, Account sourceAccountOwner, string tokenMint,int tokenDecimals=9, ulong amount = 1)
+        public async Task<RequestResult<string>> TransferToken(string sourceTokenAccount, string toWalletAccount, Account sourceAccountOwner, string tokenMint, int tokenDecimals = 9, ulong amount = 1)
         {
 
             PublicKey associatedTokenAccountOwner = new PublicKey(toWalletAccount);
@@ -284,6 +284,28 @@ namespace Canoe
             return await ClientFactory.GetClient(Env).SendTransactionAsync(transaction);
         }
 
+        public IEnumerator RequestJupiterOutputAmount(string inputMint, string outputMint, ulong amout, float shippage, int feeBps, string feeAccount, Action<double> getOutputAmountCallback)
+        {
+            string routUrlWithPams = "https://quote-api.jup.ag/v1/quote?inputMint=" + inputMint + "&outputMint=" + outputMint + "&amount=" + amout + "&slippage=" + shippage + "&feeBps=" + feeBps;
+
+            //get jupiter route
+            UnityWebRequest getRequest = UnityWebRequest.Get(routUrlWithPams);
+            yield return getRequest.SendWebRequest();
+            if (getRequest.result == UnityWebRequest.Result.ConnectionError)
+            {
+                Debug.Log(" Failed to communicate with the server");
+                yield return null;
+                getOutputAmountCallback?.Invoke(-1);
+            }
+            string data = getRequest.downloadHandler.text;
+            Debug.Log(data);
+            JsonData jData = JsonMapper.ToObject(data);
+            //choose the first
+            jupiterRoute["route"] = jData["data"][0];
+            getOutputAmountCallback?.Invoke((double)jData["data"][0]["outAmount"]); ;
+        }
+
+
         /// <summary>
         /// make a jupiter swap
         /// </summary>
@@ -292,11 +314,12 @@ namespace Canoe
         /// <param name="amout"></param>
         /// <param name="shippage"></param>
         /// <param name="Callback"></param>
-        public void JupiterSwapRequest(string inputMint, string outputMint, ulong amout, float shippage = 0.5f, int feeBps,string feeAccount,Action<RequestResult<string>> callback = null)
+        public void JupiterSwapRequest(string inputMint, string outputMint, ulong amout, float shippage, int feeBps, string feeAccount, Action<RequestResult<string>> callback = null)
         {
-            string routUrlWithPams = string.Format(routeUrl, inputMint, outputMint, amout, shippage,feeBps);
+            string routUrlWithPams = "https://quote-api.jup.ag/v1/quote?inputMint=" + inputMint + "&outputMint=" + outputMint + "&amount=" + amout + "&slippage=" + shippage + "&feeBps=" + feeBps;
+
             jupiterSwapCallback = callback;
-            StartCoroutine(GetJupiterTx(routUrlWithPams));
+            StartCoroutine(GetJupiterTx(routUrlWithPams, feeAccount));
         }
 
         #region Private functions
@@ -322,7 +345,7 @@ namespace Canoe
         }
 
 
-        private IEnumerator GetJupiterTx(string routeUrlWithPams)
+        private IEnumerator GetJupiterTx(string routeUrlWithPams, string feeAccount)
         {
             //get jupiter route
             UnityWebRequest getRequest = UnityWebRequest.Get(routeUrlWithPams);
@@ -336,16 +359,16 @@ namespace Canoe
             Debug.Log(data);
             JsonData jData = JsonMapper.ToObject(data);
             //choose the first
-            jupyteRoute["route"] = jData["data"][0];
+            jupiterRoute["route"] = jData["data"][0];
 
             //get jupiter transaction
 
-            jupyteRoute["userPublicKey"] = CurrentWallet.Account.PublicKey.ToString();
-            jupyteRoute["userPublicKey"] =feeAccount;
-            Debug.Log($"data:{(string)jupyteRoute.ToJson()}");
-            byte[] postBytes = System.Text.Encoding.Default.GetBytes((string)jupyteRoute.ToJson());
+            jupiterRoute["userPublicKey"] = CurrentWallet.Account.PublicKey.ToString();
+            jupiterRoute["feeAccount"] = feeAccount;
+            Debug.Log($"data:{(string)jupiterRoute.ToJson()}");
+            byte[] postBytes = System.Text.Encoding.Default.GetBytes((string)jupiterRoute.ToJson());
 
-            Debug.Log($"route: {(string)jupyteRoute.ToJson()}");
+            Debug.Log($"route: {(string)jupiterRoute.ToJson()}");
             Debug.Log($"userPublicKey:{CurrentWallet.Account.PublicKey}");
             UnityWebRequest postRequest = new UnityWebRequest(jupiterPostUrl, "POST");
             postRequest.SetRequestHeader("Content-Type", "application/json");
