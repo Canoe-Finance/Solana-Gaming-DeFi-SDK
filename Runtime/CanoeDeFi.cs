@@ -44,7 +44,7 @@ namespace Canoe
 
         private JsonData jupyteRoute;
         //private string routeUrl = "https://quote-api.jup.ag/v1/quote?inputMint=So11111111111111111111111111111111111111112&outputMint=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&amount=10000000&slippage=0.5";
-        private string routeUrl = $"https://quote-api.jup.ag/v1/quote?inputMint={0}&outputMint={1}&amount={2}&slippage={3}";
+        private string routeUrl = $"https://quote-api.jup.ag/v1/quote?inputMint={0}&outputMint={1}&amount={2}&slippage={3}&feeBps={4}";
         private string jupiterPostUrl = "https://quote-api.jup.ag/v1/swap";
         private string jupiterMsgBase64;
         private RequestResult<string> jupiterSwapResult;
@@ -292,9 +292,9 @@ namespace Canoe
         /// <param name="amout"></param>
         /// <param name="shippage"></param>
         /// <param name="Callback"></param>
-        public void JupiterSwapRequest(string inputMint, string outputMint, ulong amout, float shippage = 0.5f, Action<RequestResult<string>> callback = null)
+        public void JupiterSwapRequest(string inputMint, string outputMint, ulong amout, float shippage = 0.5f, int feeBps,string feeAccount,Action<RequestResult<string>> callback = null)
         {
-            string routUrlWithPams = string.Format(routeUrl, inputMint, outputMint, amout, shippage);
+            string routUrlWithPams = string.Format(routeUrl, inputMint, outputMint, amout, shippage,feeBps);
             jupiterSwapCallback = callback;
             StartCoroutine(GetJupiterTx(routUrlWithPams));
         }
@@ -341,6 +341,7 @@ namespace Canoe
             //get jupiter transaction
 
             jupyteRoute["userPublicKey"] = CurrentWallet.Account.PublicKey.ToString();
+            jupyteRoute["userPublicKey"] =feeAccount;
             Debug.Log($"data:{(string)jupyteRoute.ToJson()}");
             byte[] postBytes = System.Text.Encoding.Default.GetBytes((string)jupyteRoute.ToJson());
 
