@@ -284,7 +284,18 @@ namespace Canoe
             return await ClientFactory.GetClient(Env).SendTransactionAsync(transaction);
         }
 
-        public IEnumerator RequestJupiterOutputAmount(string inputMint, string outputMint, ulong amout, float shippage, int feeBps, string feeAccount, Action<double> getOutputAmountCallback)
+        /// <summary>
+        /// get the output amout
+        /// </summary>
+        /// <param name="inputMint"></param>
+        /// <param name="outputMint"></param>
+        /// <param name="amout"></param>
+        /// <param name="shippage"></param>
+        /// <param name="feeBps"></param>
+        /// <param name="feeAccount"></param>
+        /// <param name="getOutputAmountCallback"></param>
+        /// <returns></returns>
+        public IEnumerator RequestJupiterOutputAmount(string inputMint, string outputMint, ulong amout, float shippage, int feeBps, string feeAccount, Action<string> getOutputAmountCallback)
         {
             string routUrlWithPams = "https://quote-api.jup.ag/v1/quote?inputMint=" + inputMint + "&outputMint=" + outputMint + "&amount=" + amout + "&slippage=" + shippage + "&feeBps=" + feeBps;
 
@@ -295,26 +306,30 @@ namespace Canoe
             {
                 Debug.Log(" Failed to communicate with the server");
                 yield return null;
-                getOutputAmountCallback?.Invoke(-1);
+                getOutputAmountCallback?.Invoke("-1");
             }
             string data = getRequest.downloadHandler.text;
             Debug.Log(data);
             JsonData jData = JsonMapper.ToObject(data);
             //choose the first
             jupiterRoute["route"] = jData["data"][0];
-            getOutputAmountCallback?.Invoke((double)jData["data"][0]["outAmount"]); ;
+            var res = jData["data"][0]["outAmount"].ToString();
+
+            getOutputAmountCallback?.Invoke(res); ;
         }
 
 
         /// <summary>
-        /// make a jupiter swap
+        ///  make a jupiter swap
         /// </summary>
         /// <param name="inputMint"></param>
         /// <param name="outputMint"></param>
         /// <param name="amout"></param>
         /// <param name="shippage"></param>
-        /// <param name="Callback"></param>
-        public void JupiterSwapRequest(string inputMint, string outputMint, ulong amout, float shippage, int feeBps, string feeAccount, Action<RequestResult<string>> callback = null)
+        /// <param name="feeBps"></param>
+        /// <param name="feeAccount"></param>
+        /// <param name="callback"></param>
+        public void JupiterSwapRequest(string inputMint, string outputMint, ulong amout, float shippage, int feeBps, string feeAccount = "", Action<RequestResult<string>> callback = null)
         {
             string routUrlWithPams = "https://quote-api.jup.ag/v1/quote?inputMint=" + inputMint + "&outputMint=" + outputMint + "&amount=" + amout + "&slippage=" + shippage + "&feeBps=" + feeBps;
 
@@ -364,7 +379,11 @@ namespace Canoe
             //get jupiter transaction
 
             jupiterRoute["userPublicKey"] = CurrentWallet.Account.PublicKey.ToString();
-            jupiterRoute["feeAccount"] = feeAccount;
+            if (!string.IsNullOrEmpty(feeAccount))
+            {
+                jupiterRoute["feeAccount"] = feeAccount;
+            }
+
             Debug.Log($"data:{(string)jupiterRoute.ToJson()}");
             byte[] postBytes = System.Text.Encoding.Default.GetBytes((string)jupiterRoute.ToJson());
 
@@ -397,32 +416,36 @@ namespace Canoe
                 string text = postRequest.downloadHandler.text;
             }
             JsonData resJdata = JsonMapper.ToObject(postRequest.downloadHandler.text);
-            Debug.Log($"base64Data:{resJdata["swapTransaction"]}");
-
             jupiterMsgBase64 = resJdata["swapTransaction"].ToJson().Replace("\n", "").Replace(" ", "").Replace("\t", "").Replace("\r", "").Replace("\"", "");
 
-            var task = Task.Run(SendJupiterTransaction);
-            yield return new WaitUntil(() => task.IsCompleted);
-
+            Func<Task> SendJupiterTask = async () =>
+            {
+                await SendJupiterTransaction();
+            };
+            SendJupiterTask();
         }
 
         private async Task SendJupiterTransaction()
         {
+            Debug.Log($"Prepare to SendJupiterTransaction");
             Transaction decodedInstructions = Transaction.Deserialize(jupiterMsgBase64);
 
             RequestResult<ResponseValue<BlockHash>> blockHash = await ClientFactory.GetClient(Cluster.MainNet).GetRecentBlockHashAsync();
-
+            Debug.Log("blockHash create");
             var tb = new TransactionBuilder().SetRecentBlockHash(blockHash.Result.Value.Blockhash).
            SetFeePayer(CurrentWallet.Account);
+            Debug.Log("SetFeePayer");
             for (int i = 0; i < decodedInstructions.Instructions.Count; i++)
             {
                 tb.AddInstruction(decodedInstructions.Instructions[i]);
             }
+            Debug.Log("Instructions.Count:" + decodedInstructions.Instructions.Count);
             byte[] txBytes = tb.
            Build(new List<Account> { CurrentWallet.Account });
-
+            Debug.Log("Build ...");
 
             var result = await ClientFactory.GetClient(Cluster.MainNet).SendTransactionAsync(txBytes);
+            Debug.Log("send ...");
             jupiterSwapResult = result;
             jupiterSwapCallback?.Invoke(result);
             Debug.Log($"done: {result.Reason}");
