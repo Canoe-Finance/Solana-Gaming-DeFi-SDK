@@ -46,9 +46,9 @@ namespace Canoe
         //private string routeUrl = "https://quote-api.jup.ag/v1/quote?inputMint=So11111111111111111111111111111111111111112&outputMint=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&amount=10000000&slippage=0.5";
         private string routeUrl = $"https://quote-api.jup.ag/v1/quote?inputMint={0}&outputMint={1}&amount={2}&slippage={3}&feeBps={4}";
         private string jupiterPostUrl = "https://quote-api.jup.ag/v1/swap";
-        private string jupiterMsgBase64;
+        private JsonData jupiterTransactoins;
         private RequestResult<string> jupiterSwapResult;
-        private Action<RequestResult<string>> jupiterSwapCallback;
+        private Action<bool> jupiterSwapCallback;
         private string passwordKey = "Password";
         private string encryptedMnemonicsKey = "EncryptedMnemonics";
         private string privateKeyKey = "PrivateKey";
@@ -295,7 +295,7 @@ namespace Canoe
         /// <param name="feeAccount"></param>
         /// <param name="getOutputAmountCallback"></param>
         /// <returns></returns>
-        public IEnumerator RequestJupiterOutputAmount(string inputMint, string outputMint, ulong amout, float shippage, int feeBps, string feeAccount, Action<string> getOutputAmountCallback)
+        public IEnumerator RequestJupiterOutputAmount(string inputMint, string outputMint, ulong amout, float shippage, int feeBps, string feeAccount = "", Action<string> getOutputAmountCallback = null)
         {
             string routUrlWithPams = "https://quote-api.jup.ag/v1/quote?inputMint=" + inputMint + "&outputMint=" + outputMint + "&amount=" + amout + "&slippage=" + shippage + "&feeBps=" + feeBps;
 
@@ -329,10 +329,13 @@ namespace Canoe
         /// <param name="feeBps"></param>
         /// <param name="feeAccount"></param>
         /// <param name="callback"></param>
-        public void JupiterSwapRequest(string inputMint, string outputMint, ulong amout, float shippage, int feeBps, string feeAccount = "", Action<RequestResult<string>> callback = null)
+        public void JupiterSwapRequest(string inputMint, string outputMint, ulong amout, float shippage, int feeBps, string feeAccount = "", Action<bool> callback = null)
         {
-            string routUrlWithPams = "https://quote-api.jup.ag/v1/quote?inputMint=" + inputMint + "&outputMint=" + outputMint + "&amount=" + amout + "&slippage=" + shippage + "&feeBps=" + feeBps;
-
+            string routUrlWithPams = "https://quote-api.jup.ag/v1/quote?inputMint=" + inputMint + "&outputMint=" + outputMint + "&amount=" + amout + "&slippage=" + shippage;
+            if (!string.IsNullOrEmpty(feeAccount))
+            {
+                routUrlWithPams = routUrlWithPams + "&feeBps=" + feeBps;
+            }
             jupiterSwapCallback = callback;
             StartCoroutine(GetJupiterTx(routUrlWithPams, feeAccount));
         }
@@ -360,6 +363,7 @@ namespace Canoe
         }
 
 
+
         private IEnumerator GetJupiterTx(string routeUrlWithPams, string feeAccount)
         {
             //get jupiter route
@@ -377,18 +381,14 @@ namespace Canoe
             jupiterRoute["route"] = jData["data"][0];
 
             //get jupiter transaction
-
             jupiterRoute["userPublicKey"] = CurrentWallet.Account.PublicKey.ToString();
             if (!string.IsNullOrEmpty(feeAccount))
             {
                 jupiterRoute["feeAccount"] = feeAccount;
             }
-
-            Debug.Log($"data:{(string)jupiterRoute.ToJson()}");
             byte[] postBytes = System.Text.Encoding.Default.GetBytes((string)jupiterRoute.ToJson());
 
             Debug.Log($"route: {(string)jupiterRoute.ToJson()}");
-            Debug.Log($"userPublicKey:{CurrentWallet.Account.PublicKey}");
             UnityWebRequest postRequest = new UnityWebRequest(jupiterPostUrl, "POST");
             postRequest.SetRequestHeader("Content-Type", "application/json");
             postRequest.uploadHandler = (UploadHandler)new UploadHandlerRaw(postBytes);
@@ -409,15 +409,11 @@ namespace Canoe
                 string receiveContent = postRequest.downloadHandler.text;
                 Debug.Log(receiveContent);
             }
-
-            Debug.Log($"Status Code: {postRequest.responseCode}");
             if (postRequest.responseCode == 200)
             {
                 string text = postRequest.downloadHandler.text;
             }
-            JsonData resJdata = JsonMapper.ToObject(postRequest.downloadHandler.text);
-            jupiterMsgBase64 = resJdata["swapTransaction"].ToJson().Replace("\n", "").Replace(" ", "").Replace("\t", "").Replace("\r", "").Replace("\"", "");
-
+            jupiterTransactoins = JsonMapper.ToObject(postRequest.downloadHandler.text);
             Func<Task> SendJupiterTask = async () =>
             {
                 await SendJupiterTransaction();
@@ -425,32 +421,48 @@ namespace Canoe
             SendJupiterTask();
         }
 
+
+        RequestResult<ResponseValue<BlockHash>> blockHash;
+        bool jupiterResult;
         private async Task SendJupiterTransaction()
         {
-            Debug.Log($"Prepare to SendJupiterTransaction");
-            Transaction decodedInstructions = Transaction.Deserialize(jupiterMsgBase64);
-
-            RequestResult<ResponseValue<BlockHash>> blockHash = await ClientFactory.GetClient(Cluster.MainNet).GetRecentBlockHashAsync();
-            Debug.Log("blockHash create");
-            var tb = new TransactionBuilder().SetRecentBlockHash(blockHash.Result.Value.Blockhash).
-           SetFeePayer(CurrentWallet.Account);
-            Debug.Log("SetFeePayer");
-            for (int i = 0; i < decodedInstructions.Instructions.Count; i++)
+            jupiterResult = true;
+            blockHash = await ClientFactory.GetClient(Env).GetRecentBlockHashAsync();
+            if (((IDictionary)jupiterTransactoins).Contains("setupTransaction"))
             {
-                tb.AddInstruction(decodedInstructions.Instructions[i]);
+                await SendPartJupiterTransaction(jupiterTransactoins["setupTransaction"].ToJson().Replace("\"", ""));
             }
-            Debug.Log("Instructions.Count:" + decodedInstructions.Instructions.Count);
-            byte[] txBytes = tb.
-           Build(new List<Account> { CurrentWallet.Account });
-            Debug.Log("Build ...");
-
-            var result = await ClientFactory.GetClient(Cluster.MainNet).SendTransactionAsync(txBytes);
-            Debug.Log("send ...");
-            jupiterSwapResult = result;
-            jupiterSwapCallback?.Invoke(result);
-            Debug.Log($"done: {result.Reason}");
+            if (((IDictionary)jupiterTransactoins).Contains("swapTransaction"))
+            {
+                await SendPartJupiterTransaction(jupiterTransactoins["swapTransaction"].ToJson().Replace("\"", ""));
+            }
+            if (((IDictionary)jupiterTransactoins).Contains("cleanupTransaction"))
+            {
+                await SendPartJupiterTransaction(jupiterTransactoins["cleanupTransaction"].ToJson().Replace("\"", ""));
+            }
+            jupiterSwapCallback.Invoke(jupiterResult);
         }
-        #endregion
-    }
 
+        private async Task SendPartJupiterTransaction(string base64Str)
+        {
+            //restore transaction
+            Transaction decodedInstructions = Transaction.Deserialize(base64Str);
+            var tb = new TransactionBuilder().SetRecentBlockHash(blockHash.Result.Value.Blockhash).
+                  SetFeePayer(CurrentWallet.Account);
+            for (int j = 0; j < decodedInstructions.Instructions.Count; j++)
+            {
+                tb.AddInstruction(decodedInstructions.Instructions[j]);
+            }
+            byte[] txBytes = tb.Build(new List<Account> { CurrentWallet.Account });
+            var result = await ClientFactory.GetClient(Env).SendTransactionAsync(txBytes, true);
+            await ClientFactory.GetClient(Env).GetTransactionAsync(result.Result);
+            Debug.Log($"part transacion done: {result.Reason}");
+
+            if (result.Reason != "OK" && result.Reason != "ok")
+            {
+                jupiterResult = false;
+            }
+        }
+    }
+    #endregion
 }
