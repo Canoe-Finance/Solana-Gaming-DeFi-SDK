@@ -2,7 +2,7 @@
 
 ## Background
 
-Canoe is building a mobile-first SDK on solana hackathon, powered by Unity to both offer its DEX services, as well as assist developers to either create or bridge over to Web 3.0.
+Canoe is building a mobile-first SDK on solana, powered by Unity to both offer its DEX services, as well as assist developers to either create or bridge over to Web 3.0.
 
 ![Mobile-First Gaming DeFi SDK](https://user-images.githubusercontent.com/35088567/184520426-b8168c04-a71a-4aea-9850-384c81126f57.png)
 
@@ -24,20 +24,27 @@ With Canoe’s DeFi Toolkit and a gaming SDK, Canoe will drive a new MetaFi mark
 
 ## Features
 
+**Wallet Module**
 - Generate wallet with the mnemonic
 - Encrypt/ decrypt  account, local handled wallet(non-custodial)
 - SOL balance/ transfer
 - Transaction handling
 - SPL balance/ transfer, , base64 data decoding
 - Instruction decompilation
-- Full Jupyter support
 - Generate wallet with the mnemonic
 - Encrypt/ decrypt  account, local handled wallet(non-custodial)
 - SOL balance/ transfer
 - Transaction handling
 - SPL balance/ transfer, , base64 data decoding
 - Instruction decompilation
-- Full Jupyter support
+
+**DeFi Module**
+- Full Jupiter support
+- Smart Contract transaction building
+- Revenue sharing feature on trading for Project.
+
+**Account system**
+- Support gaming account(Web2) and Solana address(Web3)
 
  ## Dependencies
 
@@ -63,13 +70,25 @@ This SDK is compatible with the following versions of the Unity Editor:
 
 2018.1 and later (2020 and later are recommended)
 
-## How To Use
+## How To Use, Step-by-step instructions 
 
-Usage instructions and code samples can be found [HERE](https://github.com/Canoe-Finance/Solana-Gaming-DeFi-SDK/blob/main/Documentation/HowToUse.md).
+Step-by-step instructions and code samples can be found
 
-## Delivery on Solana Hackathon
+https://github.com/Canoe-Finance/Solana-Gaming-DeFi-SDK/blob/main/Documentation/HowToUse.md
 
-1. Develop a mobile SDK in Unity
-2. A showcase to use the Unity Solana SDK integrating with internal wallet and Jupiter with revenue sharing features.
-3. Integrate with Solana payment within Unity SDK(Optional)
+
+## Canoe WARRIOR, a mobile RPG game powered by SDK
+
+![Canoe Warrior Mobile RPG Game!](https://user-images.githubusercontent.com/35088567/185890394-3a9cbad1-12a0-4ff7-a24c-6c25ea96fe19.png)
+
+
+1. Game Guide on Canoe warrior, https://docs.canoe.finance/warrior/game-guide
+2. Download, https://docs.canoe.finance/warrior/update-and-downloads
+
+
+## Roadmap on DeFi module
+
+- Integrate with Solana PAY payment
+- Integrate with Wormhole
+- An optimal liquidity service for DEX market maker.
 
