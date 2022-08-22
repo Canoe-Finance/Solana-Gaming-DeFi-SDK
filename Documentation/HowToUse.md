@@ -70,10 +70,23 @@ RequestResult<string> requestResult = await
 CanoeDeFi.Instance.TransferToken(sourceTokenAccount, toWalletAccount, sourceAccountOwner, 
 tokenMint, tokenDecimals, amount);
 ```
+### Request Jupiter Output Amount
+
+After the user finishes inputting, you need to request Jupiter to display the number of results the user will get in this exchange.
+
+Note that this method uses Unity Coroutines, the returned data is not processed with different token decimal, and needs to be processed before being displayed.
+
+```C#
+StartCoroutine(CanoeDeFi.Instance.RequestJupiterOutputAmount(inMint, outMint, amount, slippage, 4, WalletController.Instance.AARTCANOEADDRESS, callbackAction<string>);
+```
+
+## 
+
 ### Jupiter Swap Request
+
 Swap between SOL and token, or different kinds of the token is very useful. We implemented an aggregated dex Jupiter, which can be used by calling the method[JupiterSwapRequest()], passing parameters of inputMint, outputMint, amount, shippage, feeBps, your feeAccount, and the callback action. while jupiter's swap is done, the callback function will be called. The result should be handled in your callback function.
 ```C#
-CanoeDeFi.Instance.JupiterSwapRequest(inputMint, outputMint, amout, shippage, feeBps, feeAccount, callbackAction<RequestResult<string>>);
+CanoeDeFi.Instance.JupiterSwapRequest(inputMint, outputMint, amout, shippage, feeBps, feeAccount, callbackAction<bool>);
 ```
 ## License
 
