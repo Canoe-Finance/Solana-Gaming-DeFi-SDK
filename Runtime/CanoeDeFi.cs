@@ -331,13 +331,24 @@ namespace Canoe
         /// <param name="callback"></param>
         public void JupiterSwapRequest(string inputMint, string outputMint, ulong amout, float shippage, int feeBps, string feeAccount = "", Action<bool> callback = null)
         {
+
+
             string routUrlWithPams = "https://quote-api.jup.ag/v1/quote?inputMint=" + inputMint + "&outputMint=" + outputMint + "&amount=" + amout + "&slippage=" + shippage;
+
+
             if (!string.IsNullOrEmpty(feeAccount))
             {
                 routUrlWithPams = routUrlWithPams + "&feeBps=" + feeBps;
+                PublicKey associatedTokenAccountOwner = new PublicKey(feeAccount);
+                PublicKey associatedTokenAccount = AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(associatedTokenAccountOwner, new PublicKey(outputMint));
+                StartCoroutine(GetJupiterTx(routUrlWithPams, associatedTokenAccount));
+            }
+            else
+            {
+                StartCoroutine(GetJupiterTx(routUrlWithPams, feeAccount));
             }
             jupiterSwapCallback = callback;
-            StartCoroutine(GetJupiterTx(routUrlWithPams, feeAccount));
+
         }
 
         #region Private functions
