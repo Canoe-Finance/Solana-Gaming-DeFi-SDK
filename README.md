@@ -13,6 +13,7 @@ Canoe v2, [Mobile Gaming-first defi sdk](https://medium.com/blog-canoe-finance/c
 Solana mobile stack Introduction, https://github.com/solana-mobile/solana-mobile-stack-sdk
 
 ## Main Features for users and developers
+
 ![Canoe Gaming DeFi SDK architecture](https://user-images.githubusercontent.com/35088567/188355684-782fa925-d0d3-4c98-bbf8-85095ff646ce.png)
 
 Mobile games can quickly integrate Web3 wallet module and DeFi module with simple integration with Canoe V2 SDK. 
